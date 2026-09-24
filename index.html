@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Interactivo de Redes - CTP Santa Bárbara</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #46178f;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 15px;
+    }
+
+    .container {
+      background-color: #ffffff;
+      color: #333333;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      width: 100%;
+      max-width: 850px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Encabezado Institucional */
+    .header-inst {
+      background-color: #33106b;
+      color: #ffffff;
+      padding: 20px;
+      text-align: center;
+      border-bottom: 4px solid #f2f2f2;
+    }
+
+    .header-inst h1 {
+      font-size: 1.4rem;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .header-inst h2 {
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: #e0e0e0;
+      margin-bottom: 3px;
+    }
+
+    .header-inst p {
+      font-size: 0.95rem;
+      color: #ffd700;
+      font-weight: bold;
+    }
+
+    .screen {
+      padding: 25px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Formulario */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group label {
+      font-weight: bold;
+      color: #46178f;
+    }
+
+    .form-group input {
+      padding: 12px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus {
+      border-color: #46178f;
+    }
+
+    /* Botones Kahoot Style */
+    .btn {
+      padding: 14px 20px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      color: #ffffff;
+      transition: transform 0.1s, opacity 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 12px;
+      text-align: left;
+      width: 100%;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    }
+
+    .btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+    }
+
+    .btn-start {
+      background-color: #1368ce;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    .btn-red { background-color: #e21b3c; }
+    .btn-blue { background-color: #1368ce; }
+    .btn-yellow { background-color: #d89e00; }
+    .btn-green { background-color: #26890c; }
+
+    .shape-icon {
+      font-size: 1.2rem;
+      width: 25px;
+      text-align: center;
+    }
+
+    /* Interfaz de Pregunta */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      color: #666;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 10px;
+    }
+
+    .timer {
+      background-color: #8854d0;
+      color: white;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 1.1rem;
+    }
+
+    .question-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #222;
+      margin: 10px 0;
+      min-height: 60px;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 600px) {
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Retroalimentación */
+    .feedback-box {
+      margin-top: 15px;
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    .feedback-correct {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .feedback-incorrect {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .btn-next {
+      background-color: #46178f;
+      color: white;
+      margin-top: 15px;
+      justify-content: center;
+    }
+
+    /* Pantalla Final */
+    .results-card {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .score-display {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #46178f;
+    }
+
+    .status-msg {
+      font-size: 1rem;
+      padding: 10px;
+      border-radius: 6px;
+      background-color: #e9ecef;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Encabezado Institucional -->
+    <header class="header-inst">
+      <h1>Colegio Técnico Profesional de Santa Bárbara</h1>
+      <h2>Subárea: Configuración y Soporte a Redes</h2>
+      <p>Docente: Ing. Jhonathan Juarez Rivas</p>
+    </header>
+
+    <!-- Pantalla 1: Bienvenida e Registro -->
+    <div id="welcome-screen" class="screen">
+      <h3 style="text-align: center; color: #46178f;">Evaluación Sumativa: Servicios y Protocolos de Soporte</h3>
+      <div class="form-group">
+        <label for="cedula">Cédula del Estudiante:</label>
+        <input type="text" id="cedula" placeholder="Ingrese su cédula o identificación">
+      </div>
+      <div class="form-group">
+        <label for="nombre">Nombre Completo del Estudiante:</label>
+        <input type="text" id="nombre" placeholder="Ingrese su nombre y apellidos">
+      </div>
+      <button class="btn btn-start" onclick="startQuiz()">Comenzar Evaluación</button>
+    </div>
+
+    <!-- Pantalla 2: Pregunta -->
+    <div id="quiz-screen" class="screen hidden">
+      <div class="top-bar">
+        <span id="question-number">Pregunta 1 de 25</span>
+        <span id="timer" class="timer">Tiempo: 90s</span>
+      </div>
+      <div id="question-text" class="question-title">Cargando pregunta...</div>
+      
+      <div class="options-grid">
+        <button class="btn btn-red" onclick="selectAnswer(0)"><span class="shape-icon">▲</span><span id="opt0"></span></button>
+        <button class="btn btn-blue" onclick="selectAnswer(1)"><span class="shape-icon">◆</span><span id="opt1"></span></button>
+        <button class="btn btn-yellow" onclick="selectAnswer(2)"><span class="shape-icon">●</span><span id="opt2"></span></button>
+        <button class="btn btn-green" onclick="selectAnswer(3)"><span class="shape-icon">■</span><span id="opt3"></span></button>
+      </div>
+
+      <div id="feedback-area" class="feedback-box hidden"></div>
+      <button id="next-btn" class="btn btn-next hidden" onclick="nextQuestion()">Siguiente Pregunta</button>
+    </div>
+
+    <!-- Pantalla 3: Resultados -->
+    <div id="results-screen" class="screen hidden">
+      <div class="results-card">
+        <h2>¡Evaluación Finalizada!</h2>
+        <p id="student-summary"></p>
+        <div id="score-text" class="score-display">0 / 25</div>
+        <div id="percentage-text" style="font-size: 1.5rem; font-weight: bold; color: #26890c;">0%</div>
+        <div id="status-message" class="status-msg">Enviando resultados a la base de datos...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // PARTE 2: URL de Apps Script (Modificar con tu enlace generado)
+    const SCRIPT_URL = "PEGA_AQUI_TU_URL_DE_APPS_SCRIPT_TERMINADA_EN_EXEC";
+
+    // Banco de Preguntas extraído estrictamente del documento provisto
+    const questions = [
+      {
+        q: "¿Cuál es la función principal del protocolo CDP en una red con dispositivos Cisco?",
+        options: ["Asignar direcciones IP automáticamente.", "Sincronizar la hora del sistema de red.", "Monitear el tráfico perimetral de internet.", "Permitir que dispositivos Cisco directamente conectados se descubran autónomamente."],
+        correct: 3,
+        exp: "CDP permite que dos o más dispositivos Cisco conectados directamente se descubran de forma autónoma, compartiendo información técnica crucial."
+      },
+      {
+        q: "¿En cuál capa del modelo OSI opera el protocolo CDP?",
+        options: ["Capa 1 (Física).", "Capa 2 (Enlace de datos).", "Capa 3 (Red).", "Capa 7 (Aplicación)."],
+        correct: 1,
+        exp: "CDP es un protocolo propietario que opera en la Capa 2 (Capa de Enlace de Datos) del modelo OSI."
+      },
+      {
+        q: "¿Cada cuántos segundos envía un equipo Cisco anuncios CDP por defecto?",
+        options: ["30 segundos.", "60 segundos.", "120 segundos.", "180 segundos."],
+        correct: 1,
+        exp: "CDP envía anuncios (advertisements) periódicos cada 60 segundos por defecto mediante tramas multicast."
+      },
+      {
+        q: "¿Qué valor representa el tiempo de retención (Holdtime) predeterminado en CDP?",
+        options: ["60 segundos.", "90 segundos.", "180 segundos.", "240 segundos."],
+        correct: 2,
+        exp: "El tiempo de vida (Holdtime) define un periodo de retención de 180 segundos por defecto antes de descartar la información del vecino."
+      },
+      {
+        q: "¿Cuál es el comando utilizado para desactivar el protocolo CDP a nivel global?",
+        options: ["cdp disable", "no cdp run", "stop cdp", "cdp off"],
+        correct: 1,
+        exp: "El comando de configuración global para deshabilitar CDP en todo el equipo es 'no cdp run'."
+      },
+      {
+        q: "¿Cuál estándar de la IEEE define al protocolo de descubrimiento abierto LLDP?",
+        options: ["IEEE 802.1Q", "IEEE 802.1AB", "IEEE 802.3af", "IEEE 802.11x"],
+        correct: 1,
+        exp: "LLDP (Link Layer Discovery Protocol) es un protocolo estandarizado por el IEEE bajo la norma 802.1AB."
+      },
+      {
+        q: "¿Qué comando de interfaz permite activar únicamente la transmisión de datos en LLDP?",
+        options: ["lldp enable", "lldp transmit", "lldp send", "lldp run"],
+        correct: 1,
+        exp: "En la configuración de interfaz, 'lldp transmit' habilita la transmisión de tramas LLDP."
+      },
+      {
+        q: "¿Cuál puerto del protocolo UDP es utilizado formalmente por el servicio NTP?",
+        options: ["Puerto 514", "Puerto 161", "Puerto 123", "Puerto 69"],
+        correct: 2,
+        exp: "El protocolo NTP opera en la Capa de Aplicación utilizando el puerto UDP 123."
+      },
+      {
+        q: "¿Qué estrato representa a un dispositivo que ha perdido la sincronización NTP o está fuera de línea?",
+        options: ["Stratum 0", "Stratum 1", "Stratum 15", "Stratum 16"],
+        correct: 3,
+        exp: "El Stratum 16 representa un estado no sincronizado o dispositivo fuera de línea en la jerarquía NTP."
+      },
+      {
+        q: "¿Qué tipo de reloj de alta precisión física se clasifica como Stratum 0?",
+        options: ["Servidor Linux local.", "Reloj Atómico / GPS.", "Router de Borde.", "Switch Core."],
+        correct: 1,
+        exp: "Stratum 0 corresponde a fuentes de tiempo de máxima precisión física como relojes atómicos de cesio o GPS."
+      },
+      {
+        q: "¿Qué comando del modo EXEC Privilegiado muestra el estado detallado del reloj y sincronización NTP?",
+        options: ["show clock status", "show ntp status", "show time detail", "show ntp clock"],
+        correct: 1,
+        exp: "El comando 'show ntp status' permite verificar la sincronización y estado del servicio NTP."
+      },
+      {
+        q: "¿Cuál es la función principal de la estación NMS dentro de la arquitectura SNMP?",
+        options: ["Almacenar logs localmente.", "Monitorear y consultar agentes mediante software especializado.", "Sincronizar la hora oficial.", "Cifrar enlaces de Capa 2."],
+        correct: 1,
+        exp: "La NMS (Network Management Station) ejecuta software de monitoreo e interactúa consultando a los agentes SNMP."
+      },
+      {
+        q: "¿Cómo se le denomina a la base de datos jerárquica guardada dentro del agente SNMP?",
+        options: ["Syslog DB", "MIB (Management Information Base)", "OID Master", "Trap Store"],
+        correct: 1,
+        exp: "La MIB es la base de datos jerárquica ubicada en el dispositivo que guarda la información estadística."
+      },
+      {
+        q: "¿Qué mensaje SNMP es enviado espontáneamente por el agente ante una falla o evento crítico?",
+        options: ["Get Request", "Set Request", "SNMP Trap", "Inform ACK"],
+        correct: 2,
+        exp: "Una SNMP Trap es una alerta no solicitada enviada autónomamente por el agente a la NMS al ocurrir un evento."
+      },
+      {
+        q: "¿Qué versión de SNMP introduce explícitamente autenticación robusta (HMAC) y cifrado de datos (DES/AES)?",
+        options: ["SNMPv1", "SNMPv2c", "SNMPv3", "SNMPv4"],
+        correct: 2,
+        exp: "SNMPv3 es la versión estándar recomendada que implementa autenticación HMAC y cifrado de datos simétrico."
+      },
+      {
+        q: "¿Qué puerto y protocolo de transporte utiliza por defecto el servicio Syslog?",
+        options: ["TCP 514", "UDP 514", "UDP 161", "TCP 123"],
+        correct: 1,
+        exp: "Syslog es un protocolo estandarizado de notificación que utiliza el puerto UDP 514."
+      },
+      {
+        q: "¿Cuál es el nivel numérico de severidad Syslog asignado a las 'Advertencias' (Warnings)?",
+        options: ["Nivel 0", "Nivel 2", "Nivel 4", "Nivel 7"],
+        correct: 2,
+        exp: "En la escala de severidades Syslog (0 a 7), el Nivel 4 corresponde a Warnings (Advertencias)."
+      },
+      {
+        q: "¿Qué nivel de severidad Syslog representa la condición más crítica (Emergency - Sistema inutilizable)?",
+        options: ["Nivel 0", "Nivel 1", "Nivel 5", "Nivel 8"],
+        correct: 0,
+        exp: "El Nivel 0 (Emergency) representa una condición de falla total con el sistema inestable e inutilizable."
+      },
+      {
+        q: "¿Qué comando redirige los registros Syslog del router hacia un servidor externo?",
+        options: ["syslog server [IP]", "logging [IP]", "log host [IP]", "set logging [IP]"],
+        correct: 1,
+        exp: "El comando 'logging [IP_SERVIDOR]' define la dirección IP del servidor Syslog externo receptor."
+      },
+      {
+        q: "¿Qué comando CLI permite verificar la tabla de vecinos directamente conectados mediante LLDP?",
+        options: ["show cdp neighbors", "show lldp neighbors", "show ip lldp", "show mac-address lldp"],
+        correct: 1,
+        exp: "El comando 'show lldp neighbors' muestra en consola la tabla de dispositivos vecinos descubiertos por LLDP."
+      },
+      {
+        q: "¿Cómo se estructuran los paquetes de información en el protocolo LLDP?",
+        options: ["Tramas Ethernet simples.", "Bloques TLV (Type-Length-Value).", "Cadenas de Comunidad.", "Archivos MIB."],
+        correct: 1,
+        exp: "A diferencia de CDP, los paquetes LLDP se estructuran mediante elementos TLV (Type-Length-Value)."
+      },
+      {
+        q: "En Syslog, ¿qué significa el código %FACILITY-SEVERITY-MNEMONIC en un mensaje de log?",
+        options: ["La dirección IP de origen.", "La estructura estándar del formato de mensaje del IOS de Cisco.", "El comando CLI para borrar registros.", "El puerto UDP del servidor."],
+        correct: 1,
+        exp: "Los mensajes del IOS de Cisco incluyen un código estructurado bajo el formato %FACILITY-SEVERITY-MNEMONIC: Message-text."
+      },
+      {
+        q: "¿Cuál es la sintaxis exacta para crear una comunidad SNMP de solo lectura denominada 'PUBLICA'?",
+        options: ["snmp-server community PUBLICA ro", "snmp community read PUBLICA", "set snmp community PUBLICA", "snmp-server read-only PUBLICA"],
+        correct: 0,
+        exp: "La sintaxis correcta en Cisco IOS es 'snmp-server community [NOMBRE] ro'."
+      },
+      {
+        q: "¿Qué comando permite incluir marcas de tiempo detalladas con fecha y hora en los mensajes de Syslog?",
+        options: ["clock set datetime", "service timestamps log datetime msec", "logging time enable", "syslog timestamp msec"],
+        correct: 1,
+        exp: "El comando 'service timestamps log datetime msec' añade marcas de tiempo exactas en los logs."
+      },
+      {
+        q: "Para desactivar el protocolo CDP únicamente en la interfaz GigabitEthernet 0/0, ¿qué comando de interfaz se utiliza?",
+        options: ["no cdp run", "no cdp enable", "cdp interface off", "disable cdp 0/0"],
+        correct: 1,
+        exp: "Dentro del modo de configuración de interfaz, el comando 'no cdp enable' desactiva CDP en esa interfaz específica."
+      }
+    ];
+
+    // Variables de Estado
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let timerInterval = null;
+    let timeLeft = 90;
+    let studentCedula = "";
+    let studentNombre = "";
+    let answered = false;
+
+    function startQuiz() {
+      studentCedula = document.getElementById("cedula").value.trim();
+      studentNombre = document.getElementById("nombre").value.trim();
+
+      if (!studentCedula || !studentNombre) {
+        alert("Por favor, ingrese su Cédula y Nombre Completo antes de iniciar.");
+        return;
+      }
+
+      document.getElementById("welcome-screen").classList.add("hidden");
+      document.getElementById("quiz-screen").classList.remove("hidden");
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      answered = false;
+      clearInterval(timerInterval);
+      timeLeft = 90;
+      updateTimerDisplay();
+
+      const q = questions[currentQuestionIndex];
+      document.getElementById("question-number").innerText = `Pregunta ${currentQuestionIndex + 1} de ${questions.length}`;
+      document.getElementById("question-text").innerText = q.q;
+
+      for (let i = 0; i < 4; i++) {
+        document.getElementById(`opt${i}`).innerText = q.options[i];
+        const btn = document.querySelectorAll('.options-grid .btn')[i];
+        btn.disabled = false;
+        btn.style.opacity = "1";
+      }
+
+      document.getElementById("feedback-area").classList.add("hidden");
+      document.getElementById("next-btn").classList.add("hidden");
+
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        updateTimerDisplay();
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          autoSelectTimeout();
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      document.getElementById("timer").innerText = `Tiempo: ${timeLeft}s`;
+    }
+
+    function autoSelectTimeout() {
+      if (!answered) {
+        selectAnswer(-1); // Responde incorrecto por tiempo agotado
+      }
+    }
+
+    function selectAnswer(selectedIndex) {
+      if (answered) return;
+      answered = true;
+      clearInterval(timerInterval);
+
+      const q = questions[currentQuestionIndex];
+      const feedbackArea = document.getElementById("feedback-area");
+      const buttons = document.querySelectorAll('.options-grid .btn');
+
+      // Deshabilitar todos los botones
+      buttons.forEach(btn => btn.disabled = true);
+
+      if (selectedIndex === q.correct) {
+        score++;
+        feedbackArea.className = "feedback-box feedback-correct";
+        feedbackArea.innerHTML = `<strong>¡Correcto!</strong><br>${q.exp}`;
+      } else {
+        feedbackArea.className = "feedback-box feedback-incorrect";
+        const selectedText = selectedIndex === -1 ? "Tiempo agotado" : "Respuesta incorrecta";
+        feedbackArea.innerHTML = `<strong>${selectedText}.</strong><br>La opción correcta era: <em>${q.options[q.correct]}</em><br>${q.exp}`;
+      }
+
+      feedbackArea.classList.remove("hidden");
+      document.getElementById("next-btn").classList.remove("hidden");
+    }
+
+    function nextQuestion() {
+      currentQuestionIndex++;
+      if (currentQuestionIndex < questions.length) {
+        loadQuestion();
+      } else {
+        showResults();
+      }
+    }
+
+    function showResults() {
+      document.getElementById("quiz-screen").classList.add("hidden");
+      document.getElementById("results-screen").classList.remove("hidden");
+
+      const percentage = ((score / questions.length) * 100).toFixed(1);
+
+      document.getElementById("student-summary").innerText = `Estudiante: ${studentNombre} (ID: ${studentCedula})`;
+      document.getElementById("score-text").innerText = `${score} / ${questions.length}`;
+      document.getElementById("percentage-text").innerText = `${percentage}%`;
+
+      sendResultsToGoogleSheets(studentCedula, studentNombre, score, percentage);
+    }
+
+    function sendResultsToGoogleSheets(cedula, nombre, puntaje, porcentaje) {
+      const statusMsg = document.getElementById("status-message");
+
+      if (!SCRIPT_URL || SCRIPT_URL.includes("PEGA_AQUI_TU_URL")) {
+        statusMsg.style.backgroundColor = "#fff3cd";
+        statusMsg.style.color = "#856404";
+        statusMsg.innerText = "Aviso: Los datos no se enviaron a Sheets porque aún no ha configurado la URL en la PARTE 2.";
+        return;
+      }
+
+      const payload = new URLSearchParams();
+      payload.append("cedula", cedula);
+      payload.append("nombre", nombre);
+      payload.append("puntaje", `${puntaje}/${questions.length}`);
+      payload.append("porcentaje", `${porcentaje}%`);
+
+      fetch(SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: payload.toString()
+      })
+      .then(() => {
+        statusMsg.style.backgroundColor = "#d4edda";
+        statusMsg.style.color = "#155724";
+        statusMsg.innerText = "✓ Registro completado exitosamente en la Hoja de Cálculo.";
+      })
+      .catch(error => {
+        console.error("Error al enviar:", error);
+        statusMsg.style.backgroundColor = "#f8d7da";
+        statusMsg.style.color = "#721c24";
+        statusMsg.innerText = "Error al intentar registrar los datos en el servidor.";
+      });
+    }
+  </script>
+</body>
+</html>
